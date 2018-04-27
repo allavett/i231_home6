@@ -1,3 +1,19 @@
+/*
+ * Graph problems are individual for each student and junit-testing is therefore impossible. You must still submit your
+ * program text here, also you find here the pointer structure description (classes Graph, Vertex and Arc) to present
+ * graphs. To receive a task you have to visit the lab (problems are in different books and you must choose one, it is
+ * not possible to make all problems available electronically). Do not forget that you also have to write a report on
+ * your solution and upload it as a pdf-file in Moodle.
+ *
+ * http://enos.itcollege.ee/~jpoial/algoritmid/kodutqq6.html
+ * Koostada meetod etteantud lihtgraafi täiendgraafi leidmiseks.
+ *
+ * http://enos.itcollege.ee/~jpoial/algoritmid/graafid.html
+ * https://et.wikipedia.org/wiki/Graafi_t%C3%A4iend
+ * http://www.math.olympiaadid.ut.ee/arhiiv/oppemat/eesti/graafid.pdf
+ * https://en.wikipedia.org/wiki/Complement_graph
+ */
+
 import java.util.*;
 
 /** Container class to different classes, that makes the whole
@@ -9,15 +25,38 @@ public class GraphTask {
    public static void main (String[] args) {
       GraphTask a = new GraphTask();
       a.run();
-      throw new RuntimeException ("Nothing implemented yet!"); // delete this
+      //throw new RuntimeException ("Nothing implemented yet!"); // delete this
    }
 
    /** Actual main method to run examples and everything. */
    public void run() {
       Graph g = new Graph ("G");
-      g.createRandomSimpleGraph (6, 9);
-      System.out.println (g);
-
+      g.createRandomSimpleGraph (2000, 1999);
+      //System.out.println (g);
+      Graph testG = g.complement();
+      //System.out.println(testG.toString());
+/*
+      Graph sampleGraph = new Graph ("Sample");
+      sampleGraph.info = 4;
+      Vertex v1 = new Vertex("v1");
+      Vertex v2 = new Vertex("v2");
+      Vertex v3 = new Vertex("v3");
+      Vertex v4 = new Vertex("v4");
+      sampleGraph.first = v1;
+      v1.next = v2;
+      v2.next = v3;
+      v3.next = v4;
+      sampleGraph.createArc("av1_v2", v1, v2);
+      sampleGraph.createArc("av2_v1", v2, v1);
+      sampleGraph.createArc("av2_v3", v2, v3);
+      sampleGraph.createArc("av3_v2", v3, v2);
+      sampleGraph.createArc("av3_v4", v3, v4);
+      sampleGraph.createArc("av4_v3", v4, v3);
+      sampleGraph.createAdjMatrix();
+      System.out.println(sampleGraph.toString());
+      sampleGraph.complement();
+      System.out.println(sampleGraph.complement().toString());
+      */
       // TODO!!! Your experiments here
    }
 
@@ -29,6 +68,8 @@ public class GraphTask {
       private Arc first;
       private int info = 0;
       // You can add more fields, if needed
+      ArrayList<Integer> arcsTo = new ArrayList<>();
+      ArrayList<Integer> complementArcs = new ArrayList<>();
 
       Vertex (String s, Vertex v, Arc e) {
          id = s;
@@ -46,6 +87,16 @@ public class GraphTask {
       }
 
       // TODO!!! Your Vertex methods here!
+
+      public ArrayList<Arc> getArcsOfVertex() {
+         ArrayList<Arc> arcsOfVertex = new ArrayList<>();
+         Arc currentArc = this.first;
+         while (currentArc != null){
+            arcsOfVertex.add(currentArc);
+            currentArc = currentArc.next;
+         }
+         return arcsOfVertex;
+      }
    }
 
 
@@ -59,6 +110,7 @@ public class GraphTask {
       private Arc next;
       private int info = 0;
       // You can add more fields, if needed
+
 
       Arc (String s, Vertex v, Arc a) {
          id = s;
@@ -76,7 +128,7 @@ public class GraphTask {
       }
 
       // TODO!!! Your Arc methods here!
-   } 
+   }
 
 
    class Graph {
@@ -151,9 +203,9 @@ public class GraphTask {
             if (i > 0) {
                int vnr = (int)(Math.random()*i);
                createArc ("a" + varray [vnr].toString() + "_"
-                  + varray [i].toString(), varray [vnr], varray [i]);
+                       + varray [i].toString(), varray [vnr], varray [i]);
                createArc ("a" + varray [i].toString() + "_"
-                  + varray [vnr].toString(), varray [i], varray [vnr]);
+                       + varray [vnr].toString(), varray [i], varray [vnr]);
             } else {}
          }
       }
@@ -177,6 +229,7 @@ public class GraphTask {
             Arc a = v.first;
             while (a != null) {
                int j = a.target.info;
+               v.arcsTo.add(j);
                res [i][j]++;
                a = a.next;
             }
@@ -197,8 +250,8 @@ public class GraphTask {
          if (n > 2500)
             throw new IllegalArgumentException ("Too many vertices: " + n);
          if (m < n-1 || m > n*(n-1)/2)
-            throw new IllegalArgumentException 
-               ("Impossible number of edges: " + m);
+            throw new IllegalArgumentException
+                    ("Impossible number of edges: " + m);
          first = null;
          createRandomTree (n);       // n-1 edges created here
          Vertex[] vert = new Vertex [n];
@@ -213,9 +266,9 @@ public class GraphTask {
          while (edgeCount > 0) {
             int i = (int)(Math.random()*n);  // random source
             int j = (int)(Math.random()*n);  // random target
-            if (i==j) 
+            if (i==j)
                continue;  // no loops
-            if (connected [i][j] != 0 || connected [j][i] != 0) 
+            if (connected [i][j] != 0 || connected [j][i] != 0)
                continue;  // no multiple edges
             Vertex vi = vert [i];
             Vertex vj = vert [j];
@@ -228,6 +281,59 @@ public class GraphTask {
       }
 
       // TODO!!! Your Graph methods here! Probably your solution belongs here.
+
+      public Graph complement(){
+         Graph complementGraph = this.clone();
+         complementGraph.eachVertex(this);
+         return complementGraph;
+      }
+
+      public void eachVertex(Graph original){
+         ArrayList<Vertex> listOfOriginalVertexes = original.getAllVertexes();
+         ArrayList<Vertex> listOfClonedVertexes = this.getAllVertexes();
+         for (int i = 0; i < listOfClonedVertexes.size(); i++) {
+            Vertex currentV = listOfClonedVertexes.get(i);
+            ArrayList<Integer> toConnect = new ArrayList<>();
+            for (int j = 0; j < original.info; j++) {
+               toConnect.add(j);
+            }
+            for (Integer arc: listOfOriginalVertexes.get(i).arcsTo) {
+               toConnect.remove(arc);
+            }
+            toConnect.remove((Integer) listOfOriginalVertexes.get(i).info); //remove self
+            currentV.complementArcs = toConnect;
+
+            for (int targetId: currentV.complementArcs) {
+               Vertex targetV = listOfClonedVertexes.get(targetId);
+               createArc("a" + currentV.id + "_" + targetV.id, currentV, targetV);
+            }
+         }
+      }
+
+      public ArrayList<Vertex> getAllVertexes(){
+         ArrayList<Vertex> listOfVertexes = new ArrayList<>();
+         Vertex currentVertex = this.first;
+         while (currentVertex != null) {
+            listOfVertexes.add(currentVertex);
+            currentVertex = currentVertex.next;
+         }
+         return listOfVertexes;
+      }
+
+      @Override
+      public Graph clone(){
+         Graph clonedGraph = new Graph("Complement_" + this.id);
+         int vertexesCount = getAllVertexes().size();
+         if (vertexesCount > 0) {
+            clonedGraph.first = new Vertex("v1");
+            Vertex next = clonedGraph.first;
+            for (int i = 1; i < vertexesCount; i++) {
+               next.next = new Vertex("v" + Integer.toString(i + 1));
+               next = next.next;
+            }
+         }
+         return clonedGraph;
+      }
    }
 
 } 
